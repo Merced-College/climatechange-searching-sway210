@@ -1,38 +1,40 @@
-//jose arellano
+// Jose Arellano
+// Date: 3/3/2025
+// Assignment: Climate Data
 
 
+// main.cpp
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <sstream>
-#include <algorithm>
-
-using namespace std;
+//#include "StateClimate.h"
 
 class StateClimate {
-private:
-    int fips;
-    int year;
-    double temp;
-    double tempc;
-public:
-    // Constructor
-    StateClimate(int f, int y, double t, double tc);
-
-    // Getters
-    int getFips() const;
-    int getYear() const;
-    double getTemp() const;
-    double getTempC() const;
-
-    // Setters
-    void setFips(int f);
-    void setYear(int y);
-    void setTemp(double t);
-    void setTempC(double tc);
-
-    // Display function
-    void display() const;
+    private:
+        int fips;
+        int year;
+        double temp;
+        double tempc;
+    
+    public:
+        // Constructor
+        StateClimate(int f, int y, double t, double tc);
+    
+        // Getters
+        int getFips() const;
+        int getYear() const;
+        double getTemp() const;
+        double getTempC() const;
+    
+        // Setters
+        void setFips(int f);
+        void setYear(int y);
+        void setTemp(double t);
+        void setTempC(double tc);
+    
+        // Display function
+        void display() const;
 };
 
 StateClimate::StateClimate(int f, int y, double t, double tc) : fips(f), year(y), temp(t), tempc(tc) {}
@@ -51,78 +53,84 @@ void StateClimate::setTempC(double tc) { tempc = tc; }
 
 // Display function
 void StateClimate::display() const {
-    cout << "FIPS: " << fips << ", Year: " << year
-         << ", Temp (F): " << temp << ", Temp (C): " << tempc << std::endl;
+    std::cout << "FIPS: " << fips << ", Year: " << year 
+              << ", Temp (F): " << temp << ", Temp (C): " << tempc << std::endl;
 }
 
-// Comparison function for sorting and searching
-bool compareByFips(const StateClimate &a, const StateClimate &b) {
-    return a.getFips() < b.getFips();
-}
 
-// Recursive binary search function
-int binarySearch(const vector<StateClimate> &data, int targetFips, int left, int right) {
-    if (left > right) {
-        return -1; // Not found
+// Binary Search function for fips (exact match)
+int binarySearch(const std::vector<StateClimate>& data, int targetFips) {
+    int low = 0;
+    int high = data.size() - 1;
+
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        
+        if (data[mid].getFips() == targetFips) {
+            return mid; // Found the target FIPS
+        }
+        else if (data[mid].getFips() < targetFips) {
+            low = mid + 1; // Search in the right half
+        }
+        else {
+            high = mid - 1; // Search in the left half
+        }
     }
 
-    int mid = left + (right - left) / 2;
-    if (data[mid].getFips() == targetFips) {
-        return mid;
-    } else if (data[mid].getFips() > targetFips) {
-        return binarySearch(data, targetFips, left, mid - 1);
-    } else {
-        return binarySearch(data, targetFips, mid + 1, right);
-    }
+    return -1; // If the FIPS is not found
 }
+
 
 int main() {
-    vector<StateClimate> climateData;
-    ifstream file("climdiv_state_year.csv");
+    std::vector<StateClimate> climateData;
+    std::ifstream file("climdiv_state_year.csv");
+    
     if (!file) {
-        cerr << "Error opening file!" << endl;
+        std::cerr << "Error opening file!" << std::endl; //Outputs error
         return 1;
     }
 
-    string line;
-    getline(file, line); // Skip header line
-    while (getline(file, line)) {
-        stringstream ss(line);
+    std::string line;
+    std::getline(file, line); // Skip header line
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
         int fips, year;
         double temp, tempc;
         char comma;
+
         ss >> fips >> comma >> year >> comma >> temp >> comma >> tempc;
         climateData.emplace_back(fips, year, temp, tempc);
     }
 
     file.close();
+    
+    std::string input;
+    do {
+        std::cout << "Enter a state name to search (enter 'exit' to quit): "; //Enter state name
+        std::cin >> input;
 
-    // sort data by FIPS code
-    sort(climateData.begin(), climateData.end(), compareByFips);
-
-    // Display data
-    //for (const auto &entry : climateData) {
-       // entry.display();
-   // }
-
-    // Allow user to search multiple times
-    while (true) {
-        int targetFips;
-        cout << "Enter FIPS code to search (or -1 to exit): ";
-        cin >> targetFips;
-
-        if (targetFips == -1) {
+        if (input == "exit") {
+            std::cout << "Goodbye!" << std::endl; //godbye message
             break;
         }
 
-        int index = binarySearch(climateData, targetFips, 0, climateData.size() - 1);
+        int targetFips = std::stoi(input);
+        int index = binarySearch(climateData, targetFips);
         if (index != -1) {
-            cout << "Record found for FIPS " << targetFips << ":" << endl;
             climateData[index].display();
         } else {
-            cout << "Record not found for FIPS " << targetFips << endl;
+            std::cout << "State not found. Please try again." << std::endl; //failed to find state
         }
+        std::cout << std::endl; // Add a space after each run through
+        std::cout << std::endl; // Add an extra space for readability
+    } while (true);
+
+
+   /*  // Display data
+    for (const auto &entry : climateData) {
+        entry.display();
     }
+    */
 
     return 0;
 }
